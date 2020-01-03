@@ -1,0 +1,23 @@
+<div class="form-group row">
+   <label for="ecole" class="control-label col-sm-2">Groupe Scolaire</label>
+   <div class="col-sm-4">
+      <select name="ecole" id="ecole" class="form-control custom-select custom-select-sm" required>
+         <option value="" selected disabled>Choisir un groupe scolaire</option>
+      </select>
+   </div>
+</div>
+
+<div class="form-group row" id="form_classe">
+   <label for="classe" class="control-label col-sm-2">Future Classe</label>
+   <div class="col-sm-4">
+      <select name="classe" id="classe" class="form-control custom-select custom-select-sm" required>
+         <option value="" selected disabled>Choisir la classe pour la rentrée</option>
+      </select>
+   </div>
+</div>
+<hr />
+<div id="actQte">
+<input type="button" onClick="initQuantite();" value="Réinitialiser les quantités" class="btn btn-info"> 
+<input type="button" onClick="resetQuantite();" value="Vider les quantités" class="btn btn-info"> 
+</div>
+<div id="fournitures" class="table-responsive-sm panel-group"></div>

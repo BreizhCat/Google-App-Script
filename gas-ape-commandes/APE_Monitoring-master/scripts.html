@@ -1,0 +1,26 @@
+<script>
+function paid(ref) {
+   google.script.run.withSuccessHandler(updateStyle).withFailureHandler(onFailure).updatePaid(ref);  
+   return false;
+}
+
+$(function () {
+  $('[data-toggle="tooltip"]').tooltip()
+})
+
+function onFailure(error) {
+   alert(error);
+}
+
+function updateStyle(ref) {
+  document.getElementById(ref).setAttribute('class', 'card text-center text-white bg-info mb-3');
+  var href_link = document.getElementById('link_'+ref);
+  href_link.innerHTML = 'Payé';
+  href_link.setAttribute('class', 'btn btn-primary disabled');
+  chart.options.data[0].dataPoints[0].y = chart.options.data[0].dataPoints[0].y + 1;
+  chart.options.data[0].dataPoints[1].y = chart.options.data[0].dataPoints[1].y - 1;
+  chart.render();
+}
+
+
+</script>

@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="fr">
+
+<head>
+    <?!= include('header') ?>
+    <base target="_top">
+    <title>Administration des Commandes groupées APE</title>
+    <script>
+    var chart = ""; 
+    var orders = "";
+  
+    window.onload = function () {
+    	chart = new CanvasJS.Chart("chart",
+	{
+		animationEnabled:true,
+        exportEnabled: true,
+        title:{
+			text: "Statut des commandes"
+		},
+		legend: {
+			maxWidth: 350,
+			itemWidth: 120
+		},
+		data: [
+		{
+			type: "pie",
+			showInLegend: true,
+			legendText: "{indexLabel} {y}",
+			dataPoints: [
+				{ y: {paye}, indexLabel: "Payés" },
+				{ y: {due}, indexLabel: "Dûes" },
+			]
+		}
+		]
+	});
+	chart.render();
+    orders = $('#content').find('.commande');
+   
+    $('#searchInput').keyup(function(eve) {
+        var searchString = $(this).val().toLowerCase();
+        var searchArray = searchString.split(' ');
+        var len = searchArray.length;
+       
+       orders.each(function(index,elem) {
+           var object = $(elem);
+           object.removeClass('hideThisLine');
+           var oneLine = object.text().toLowerCase();
+           console.log(oneLine);
+           match = true;
+           sal = len;
+           while(sal--) if(oneLine.indexOf(searchArray[sal]) == -1) match = false;
+        if(!match) object.addClass('hideThisLine');
+      });
+      
+      $('.d-none').removeClass('d-none');
+      $('.hideThisLine').addClass('d-none');
+    });    
+    
+};
+    </script>
+    <script type="text/javascript" src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+    <?!= include('stylesheet'); ?>
+</head>
+
+<body>
+   <nav class="navbar navbar-expand-lg fixed-top navbar-dark bg-primary">
+      <img src="https://scontent-cdg2-1.xx.fbcdn.net/v/t1.0-9/11742775_1013238195355455_674785179328452092_n.png?_nc_cat=107&_nc_ht=scontent-cdg2-1.xx&oh=1232e9f568474a1ccaa9be4e0034df6b&oe=5D1A5E9A" width="30" height="30" class="d-inline-block align-top" alt="">
+      <span class="navbar-text">&nbsp;&nbsp;Association des Parents d'Élèves Aussonne - Commandes de fournitures scolaires groupées</span>
+   </nav>
+   <div class="spacer"></div>
+   <div id="chart" style="height: 300px;  margin: auto"></div>
+   <div id="content" class="container">
+      <div class="alert alert-dismissible alert-warning">
+         <button type="button" class="close" data-dismiss="alert">&times;</button>
+         <h4 class="alert-heading">Attention !</h4>
+         <p class="mb-0">Vous êtes dans la zone d'administration de la page ! Agissez prudemment !</p>
+      </div>
+      <div class="input-group">
+         <div class="input-group-prepend"><div class="input-group-text"><span class="fa fa-search"></span></div></div>
+         <input class="form-control" type="search" id="searchInput">
+      </div>
+       <div class="spacer"></div>
+      <div class="card-columns">
+        {content}
+      </div>
+   </div>
+   <?!= include('scripts'); ?>  
+</body>
+
+</html>

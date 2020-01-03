@@ -1,0 +1,114 @@
+<script>
+function paid(ref) {
+   google.script.run.withSuccessHandler(updateStyle).withFailureHandler(onFailure).updatePaid(ref);  
+   return false;
+}
+
+function issue(ref) {
+   google.script.run.withSuccessHandler(isIssue).withFailureHandler(onFailure).updateIssue(ref);  
+   return false;
+}
+
+$(function () {
+  $('[data-toggle="tooltip"]').tooltip()
+})
+
+function onFailure(error) {
+   alert(error);
+}
+
+function updateStyle(ref) {
+  var href_link = document.getElementById('link_'+ref);
+  href_link.innerHTML = 'Payé';
+  href_link.setAttribute('class', 'btn btn-success disabled');
+}
+
+function isIssue(ref) {
+  var href_link = document.getElementById('issue_'+ref);
+  if (href_link.innerHTML == '!') {
+  href_link.setAttribute('class', 'btn btn-success');
+  href_link.innerHTML = '';
+  }else
+  {
+  href_link.innerHTML = '!';
+  href_link.setAttribute('class', 'btn btn-warning');
+  }
+}
+
+function sortTable(n) {
+  var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+  table = document.getElementById("orders-table");
+  switching = true;
+  // Set the sorting direction to ascending:
+  dir = "asc"; 
+  /* Make a loop that will continue until
+  no switching has been done: */
+  while (switching) {
+    // Start by saying: no switching is done:
+    switching = false;
+    rows = table.rows;
+    /* Loop through all table rows (except the
+    first, which contains table headers): */
+    for (i = 1; i < (rows.length - 1); i++) {
+      // Start by saying there should be no switching:
+      shouldSwitch = false;
+      /* Get the two elements you want to compare,
+      one from current row and one from the next: */
+      x = rows[i].getElementsByTagName("TD")[n];
+      y = rows[i + 1].getElementsByTagName("TD")[n];
+      /* Check if the two rows should switch place,
+      based on the direction, asc or desc: */
+      if (dir == "asc") {
+        if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+          // If so, mark as a switch and break the loop:
+          shouldSwitch = true;
+          break;
+        }
+      } else if (dir == "desc") {
+        if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+          // If so, mark as a switch and break the loop:
+          shouldSwitch = true;
+          break;
+        }
+      }
+    }
+    if (shouldSwitch) {
+      /* If a switch has been marked, make the switch
+      and mark that a switch has been done: */
+      rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+      switching = true;
+      // Each time a switch is done, increase this count by 1:
+      switchcount ++; 
+    } else {
+      /* If no switching has been done AND the direction is "asc",
+      set the direction to "desc" and run the while loop again. */
+      if (switchcount == 0 && dir == "asc") {
+        dir = "desc";
+        switching = true;
+      }
+    }
+  }
+}
+
+function refresh() {
+  document.getElementById('searchInput'). value = '';
+  $("#stats-table").fadeOut( "slow", function() {
+  document.getElementById("stats-table").innerHTML = "";
+  google.script.run.withSuccessHandler(updateStats).withFailureHandler(onFailure).getStats();  });
+  
+  $("#orders-table").fadeOut("slow", function() {
+  document.getElementById("orders-table").innerHTML = "";
+  google.script.run.withSuccessHandler(updateOrders).withFailureHandler(onFailure).getOrders();  });
+  return false;
+}
+
+function updateOrders(string) {
+ document.getElementById("orders-table").innerHTML = string;
+ $("#orders-table").fadeIn();
+}
+
+function updateStats(string) {
+ document.getElementById("stats-table").innerHTML = string;
+ $("#stats-table").fadeIn();
+}
+</script>

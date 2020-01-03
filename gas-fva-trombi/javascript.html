@@ -1,0 +1,159 @@
+<script>
+var adherents = "";
+window.onload = function () {
+    adherents = $('#trombi').find('.figure');
+
+    function searchAdherent(eve) {
+        adherents = $('#trombi').find('.figure');
+        var searchString = $(this).val().toLowerCase();
+        console.log(searchString + " / " + adherents.length);
+        var searchArray = searchString.split(' ');
+        var len = searchArray.length;
+        adherents.each(function (index, elem) {
+            var object = $(elem);
+            object.removeClass('hideThisLine');
+            var oneLine = object.text().toLowerCase();
+            match = true;
+            sal = len;
+            while (sal--)
+                if (oneLine.indexOf(searchArray[sal]) == -1) match = false;
+            if (!match) object.addClass('hideThisLine');
+        });
+
+        $('.d-none').removeClass('d-none');
+        $('.hideThisLine').addClass('d-none');
+    }
+    
+    $('#searchInput').keyup(searchAdherent);
+    $('#searchForm').submit(function (eve) {
+        eve.preventDefault();
+    });
+
+    $('#loginForm').submit(function (eve) {
+        eve.preventDefault();
+        google.script.run.withSuccessHandler(returnPassword).checkPasswordFromDB($("#password").val());
+    });
+
+    $('#save_conf').click(function (eve) {
+        google.script.run.withSuccessHandler(displayToast).saveConfigToDB($('#source_file').val(), $('#source_img').val());
+    })
+
+    $('.loader').hide();
+    $('#searchForm').hide();
+    $('#no_entry').hide();
+    $('#conf').hide();
+    
+    $('#searchInput').on('search', function () {
+        $('.d-none').removeClass('d-none');
+    });
+}
+
+var myVueObject = new Vue({
+    el: '#container',
+
+    data: {
+        groupes: [],
+        nobody: false,
+        adherents_filtered: [],
+        adherents: []
+    },
+    created: function () {
+        this.adherents_filtered = this.adherents;
+    },
+    watch: {
+        adherents: function () { this.adherents_filtered = this.adherents; },
+    },
+    methods: {
+        set_filtering: function (tag, event) {
+            event.preventDefault();
+            $('#no_entry').hide();
+            $('#searchInput').val('');
+            $(".navbar-collapse").collapse('hide');
+            $('.d-none').removeClass('d-none');
+            
+            if (tag !== '')
+                this.adherents_filtered = this.adherents.filter(item => {
+                    return item.tag.includes(tag)
+                });
+            else
+                this.adherents_filtered = this.adherents;
+            
+            if (this.adherents_filtered.length == 0) $('#no_entry').show();
+        },
+        dispInfos: function (idx) {
+            $('#adherent_' + idx).modal('toggle');
+        },
+
+        getBadNet: function (licence, id) {
+            google.script.run.withSuccessHandler(updateBadNet).getBadisteInfo(licence, id);
+        }
+    }
+});
+
+function updateBadNet(data) {
+    $('#badnet' + data.id).hide();
+    $('#single' + data.id).text(data.single);
+    $('#double' + data.id).text(data.double);
+    $('#mixte'  + data.id).text(data.mixte);
+}
+
+function displayResult(data) {
+    try {
+        myVueObject.groupes = data;
+        $('#searchForm').show();
+        $('#conf').show();
+    } catch (e) {
+        console.log(e);
+    }
+}
+
+function onError(error) {
+    console.error(error.message);
+}
+
+function displayAdherent(data) {
+    try {
+        myVueObject.adherents = data;
+        google.script.run.withFailureHandler(onError).withSuccessHandler(displayResult).getGroupesFromDB();
+        $('.loader').hide();
+        adherents = $('#trombi').find('.figure');
+    } catch (e) {
+        console.log(e);
+    }
+}
+
+function displayToast() {
+    var divToast = document.getElementById("snackbar");
+    divToast.className = "alert alert-success show";
+    setTimeout(function () {
+        divToast.className = divToast.className.replace("show", "");
+    }, 3000);
+}
+
+function retrieveConf() {
+    google.script.run.withSuccessHandler(confRetrieved).getConfigFromDB();
+}
+
+function confRetrieved(data) {
+    $("#source_file").val(data.file);
+    $("#source_img").val(data.img);
+    $('#modalConf').modal('toggle');
+}
+
+function returnPassword(data) {
+    if (data == true) {
+        $('#loginBlock').hide();
+        $('.loader').show();
+        var x = document.getElementById("loginSuccess");
+        x.className = "alert alert-success show";
+        setTimeout(function () { x.className = x.className.replace("show", ""); }, 3000);
+        google.script.run.withSuccessHandler(displayAdherent).getAdherentsFromDB();
+    }
+    else {
+        $('.loader').hide();
+        var x = document.getElementById("loginFailed");
+        x.className = "alert alert-danger show";
+        setTimeout(function () { x.className = x.className.replace("show", ""); }, 3000);
+    }
+}
+</script>

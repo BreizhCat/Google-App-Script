@@ -1,0 +1,384 @@
+<script>
+    // Generate table with information from JSON Data
+    var enumColumn = {
+        "groupe": 0,
+        "classe": 1,
+        "ref": 2,
+        "desc": 3,
+        "pu": 4,
+        "qte": 5,
+        "alt": 6,
+    }
+
+    var enumTableColumn = {
+        "ref": 0,
+        "desc": 1,
+        "pu": 2,
+        "qte": 3,
+        "cde": 4,
+        "ptot": 5,
+    }
+    
+
+    $(function () {
+        $('#popin').modal('show');
+        google.script.run.withSuccessHandler(showGroupe).withFailureHandler(onFailure).updateGroupeList();
+    });
+
+    $("#formulaire").submit(function (e) {
+
+        var tabArticles = [];
+        var dataQte = this.querySelectorAll(".qtecde");
+
+        e.preventDefault();
+
+        var iTotArt = parseFloat(document.getElementById("totalart").innerHTML);
+        if (iTotArt < 1) {
+            alert("Vous n'avez rien commandé!");
+            return;
+        }
+        for (var i = 0; i < dataQte.length; i++) {
+            var quantite = dataQte[i];
+            var rowArticles = {
+                'index': i,
+                'ref': quantite.getAttribute("name"),
+                'qte': quantite.value,
+                'desc': quantite.getAttribute("data-desc"),
+                'pu': quantite.getAttribute("data-pu"),
+            };
+            tabArticles.push(rowArticles);
+        }
+        var groupeData = document.getElementById("ecole");
+        var rawData = {
+            'ecole': this.querySelector('#ecole').value,
+            'classe': this.querySelector('#classe').value,
+            'groupe': groupeData.options[groupeData.selectedIndex].text,
+            'current': this.querySelector('#current').value,
+            'nom': this.querySelector('#inputNom').value,
+            'prenom': this.querySelector('#inputPrenom').value,
+            'tel': this.querySelector('#inputPhone').value,
+            'mail': this.querySelector('#inputMail').value,
+            'total': document.getElementById("total").innerHTML,
+            'frais': document.getElementById("frais").innerHTML,
+            'articles': tabArticles,
+
+        };
+        google.script.run.withSuccessHandler(orderValidated).withFailureHandler(onFailure).validateOrder(rawData);
+        $("#formulaire").css("display", "none");
+        $("#proc").css("display", "block");
+        onProgress(true);
+    });
+
+    function refreshCommande(_case) {
+        var rawData = {
+            'nom'   : document.getElementById("inputNom").value,
+            'prenom': document.getElementById("inputPrenom").value,
+            'tel'   : document.getElementById("inputPhone").value,
+            'mail'  : document.getElementById("inputMail").value,
+            'isRefreshed' : "X",
+        };
+        
+        if (_case === true) {
+            google.script.run.withSuccessHandler(updatePage).withFailureHandler(onFailure).refreshData(rawData);
+        } else {
+            window.open("https://www.apeaussonne.fr/", '_top');
+        }        
+        onProgress(true);
+        var divContainer = document.getElementById("order");
+        divContainer.innerHTML = ""; 
+    }
+
+    function updatePage() {
+       // window.open("https://script.google.com/macros/s/AKfycbwZjyRIVvuCVsqC2UQ7org3iVWyVdZiTZOsVBZzHsMe/dev", '_top');
+       window.open("http://commandes.apeaussonne.fr/", '_top');
+            
+    }
+    
+
+    function orderValidated(order_vl) {
+        document.getElementById("order").innerHTML = '<p class="text-center">Commande validée. Référence à fournir dans vos futurs échanges <strong>' + order_vl[0].toUpperCase() + '</strong>.</p>';
+        document.getElementById("order").innerHTML += '<p class="text-center"><span class="far fa-file-pdf"></span>&nbsp;&nbsp;<a target="_blank" title="Votre facture" href="' + order_vl[1] + '">Votre facture</a></p>';
+        document.getElementById("order").innerHTML += '<div class="btn-group col-centered" role="group" aria-label="mes_options"><button type="button" class="btn btn-primary btn-sm" onclick="refreshCommande(true); return false;">Nouvelle commande</button>'+
+        '<button type="button" class="btn btn-warning btn-sm" onclick="refreshCommande(false); return false;">Fermer</button></div>';
+        $("#order").css("display", "block");
+        $("#proc").css("display", "none");
+        onProgress(false);
+    }
+
+    function onProgress(status) {
+        switch (status) {
+            case true:
+                $(".bar").css('display', 'block');
+                break;
+            case false:
+                $(".bar").css('display', 'none');
+                break;
+        }
+    }
+
+    function onFailure(error) {
+        $("#dbg").append(error);
+        $("#dbg").css('display', 'block');
+        $("#contact").css('display', 'none');
+        var divContainer = document.getElementById("fournitures");
+        divContainer.innerHTML = "";
+        onProgress(false);
+    }
+
+    function showGroupe(tab_groupe) {
+        var numGroupe = tab_groupe.length
+        for (var i = 0; i < numGroupe; i++) {
+            groupe = tab_groupe[i];
+            if (numGroupe == 1) {
+                $("#ecole").append('<option value="' + groupe[0] + '" selected>' + groupe[1] + '</option>');
+                zlog_clear();
+                google.script.run.withSuccessHandler(showClasse).withFailureHandler(onFailure).updateClassList($("#ecole").val());
+
+            }
+            else {
+                $("#ecole").append('<option value="' + groupe[0] + '">' + groupe[1] + '</option>');
+                onProgress(false);
+
+            }
+        }
+        $("#formulaire").css("display", "block");
+    }
+
+    function showClasse(tab_classes) {
+        $("#classe").find(":enabled").remove();
+        $("#classe").val("");
+        document.getElementById("fournitures").innerHTML = "";
+
+        for (var i = 0; i < tab_classes.length; i++) {
+            var classe = tab_classes[i];
+            $("#classe").append('<option data-conf="' + (classe[3] == true ? 'Y' : 'N') + '" value="' + classe[1] + '">' + classe[1] + '</option>');
+        }
+        google.script.run.withSuccessHandler(showCurrent).withFailureHandler(onFailure).updateCurrentList($("#ecole").val());
+    }
+
+    function showCurrent(tab_current) {
+        $("#current").find(":enabled").remove();
+        $("#form_classe").css("display", "flex");
+
+        for (var i = 0; i < tab_current.length; i++) {
+            var current = tab_current[i];
+            $("#current").append('<option value="' + current[1] + " - " + current[2] + '">' + current[1] + " - " + current[2] + '</option>');
+        }
+        $('#current').append('<option value="NA - Aucun enfant scolarisé">NA - Aucun enfant scolarisé</option>');
+        onProgress(false);
+    }
+
+    function classChosen(groupe, classe) {
+        google.script.run.withSuccessHandler(showFourn).withFailureHandler(onFailure).updateFournList(groupe, classe);
+        onProgress(true);
+    }
+
+    function zlog_clear() {
+        document.getElementById("dbg").innerHTML = "";
+        $("#dbg").css('display', 'none');
+    }
+
+    function zlog(texte, clear) {
+        if (clear == true) zlog_clear();
+        document.getElementById("dbg").innerHTML += '<br />' + texte;
+        onProgress(false);
+    }
+
+
+    $("#classe").change(function (e) {
+        zlog_clear();
+        google.script.run.withSuccessHandler(showFourn).withFailureHandler(onFailure).updateFournList($("#ecole").val(), $("#classe").val());
+        onProgress(true);
+    });
+
+    $("#ecole").change(function (e) {
+        zlog_clear();
+        $("#contact").css('display', 'none');
+        var divContainer = document.getElementById("fournitures");
+        divContainer.innerHTML = "";
+        google.script.run.withSuccessHandler(showClasse).withFailureHandler(onFailure).updateClassList($("#ecole").val());
+        onProgress(true);
+    });
+
+
+    function showFourn(return_val) {
+        if ($("#classe :selected").attr("data-conf") == 'Y')
+            $('.current_classe').text('Classe fratrie');
+        else
+            $('.current_classe').text('Classe actuelle');
+        
+        $("#actQte").css("display", "block");
+        $("#contact").css("display", "block");
+        var tabHeader = [];
+        // Clear display to have an empty div
+        var divContainer = document.getElementById("fournitures");
+        divContainer.innerHTML = "";
+
+        var dataFournitures = return_val[0];
+        var domTable = document.createElement("table");
+        domTable.className = "table table-striped table-responsive-sm table-sm";
+
+        // Retrieve header from JSON DDIC
+        var domRow = domTable.insertRow(-1);
+
+        var sHeader = return_val[2].split(";");
+        for (var i = 0; i < sHeader.length; i++) {
+            tabHeader.push(sHeader[i]);
+
+            var domTableHeader = document.createElement("th");
+            domTableHeader.innerHTML = sHeader[i].split(" ").join("<br />");
+            domTableHeader.className = "thead-dark table-dark align-middle ";
+            switch (i) {
+                case enumTableColumn.ref:
+                    break;
+                case enumTableColumn.ref:
+                    break;
+                case enumTableColumn.desc:
+                    break;
+                case enumTableColumn.pu:
+                    domTableHeader.className += "text-center";
+                    break;
+                case enumTableColumn.qte:
+                    domTableHeader.className += "text-center";
+                    break;
+                case enumTableColumn.cde:
+                    domTableHeader.className += "text-center";
+                    break;
+                case enumTableColumn.ptot:
+                    domTableHeader.className += "text-center";
+                    break;
+            }
+
+            domRow.appendChild(domTableHeader);
+        }
+
+        for (var i = 0; i < dataFournitures.length; i++) {
+            fourniture = dataFournitures[i];
+            var domRow = domTable.insertRow(-1);
+            domRow.className = "fourniture_row";
+
+            for (var j = 0; j < tabHeader.length; j++) {
+                header = tabHeader[j];
+                var domCell = domRow.insertCell(-1);
+                var strTexte = "";
+                switch (j) {
+                    case enumTableColumn.ref:
+                        if (isNaN(Number(fourniture[enumColumn.ref]))) {
+                            strTexte = fourniture[enumColumn.ref];
+                            domCell.innerHTML = strTexte.charAt(0).toUpperCase() + strTexte.slice(1).toLowerCase();
+                        } else domCell.innerHTML = fourniture[enumColumn.ref];
+                        domCell.className += "text-sm-left";
+
+                        break;
+                    case enumTableColumn.desc:
+                        strTexte = fourniture[enumColumn.desc];
+                        domCell.innerHTML = strTexte.charAt(0).toUpperCase() + strTexte.slice(1).toLowerCase();
+                        if (fourniture[enumColumn.alt] == true) {
+                            domCell.innerHTML += '&nbsp;<span class="badge badge-pill badge-info">Autre choix</span>';
+                        }
+                        break;
+                    case enumTableColumn.pu:
+                        domCell.innerHTML = parseFloat(fourniture[enumColumn.pu]).toFixed(2);
+                        domCell.className += "prix euro text-sm-center"
+                        break;
+                    case enumTableColumn.qte:
+                        domCell.innerHTML = parseFloat(fourniture[enumColumn.qte]).toFixed(0);
+                        domCell.className += "text-sm-center advqte";
+                        if (fourniture[enumColumn.alt] == true) {
+                            domCell.setAttribute('data-alt', 'X');
+                        }
+                        break;
+                    case enumTableColumn.cde:
+                        var iQte = 0;
+                        if (fourniture[enumColumn.alt] !== true)
+                            iQte = fourniture[enumColumn.qte];
+
+                        domCell.setAttribute("class", "text-right");
+                        domCell.innerHTML = '<input style="margin:auto" onChange="updateSum(' + parseFloat(return_val[1]) + ');" class="qtecde col-xs form-control form-control-sm" min="0" type="number" value="' +
+                            iQte + '" name="' + fourniture[enumColumn.ref] + '"data-desc="' + fourniture[enumColumn.desc] + ' " data-pu="' + fourniture[enumColumn.pu] + '" max="99" />';
+                        break;
+                    case enumTableColumn.ptot:
+                        domCell.innerHTML = (parseFloat(fourniture[enumColumn.qte]) * parseFloat(fourniture[enumColumn.pu])).toFixed(2);
+                        domCell.setAttribute("class", "col-auto euro ptot");
+                        break;
+                }
+            }
+        }
+        // Add Total Footer
+        {
+            var domRow = domTable.insertRow(-1);
+            var domCell;
+
+            domRow.setAttribute("class", "table-dark");
+            domCell = domRow.insertCell(-1);
+            domCell.setAttribute("colspan", tabHeader.length - 1);
+            domCell.setAttribute("scope", "row");
+            domCell.innerHTML = "Frais de traitement et de préparation";
+
+            domCell = domRow.insertCell(-1);
+            domCell.innerHTML = parseFloat(return_val[1]).toFixed(2);
+            domCell.setAttribute("class", "euro");
+            domCell.setAttribute("id", "frais");
+
+            domRow = domTable.insertRow(-1);
+            domRow.setAttribute("class", "table-dark");
+            domCell = domRow.insertCell(-1);
+            domCell.setAttribute("colspan", tabHeader.length - 2);
+            domCell.setAttribute("scope", "row");
+            domCell.innerHTML = "Total";
+            domCell = domRow.insertCell(-1);
+            domCell.setAttribute("id", "totalart");
+            domCell.setAttribute("class", "text-center");
+            domCell = domRow.insertCell(-1);
+            domCell.setAttribute("id", "total");
+            domCell.setAttribute("class", "euro");
+        }
+        divContainer.appendChild(domTable);
+        updateSum(return_val[1]);
+        $(".bar").css('display', 'none');
+    }
+
+    function resetQuantite() {
+        var tabQuantite = document.querySelectorAll(".qtecde");
+        for (var i = 0; i < tabQuantite.length; i++) {
+            var quantite = tabQuantite[i];
+            quantite.value = 0;
+        }
+        updateSum(document.getElementById('frais').innerHTML);
+    }
+
+    function initQuantite() {
+        var tabQuantite = document.querySelectorAll(".qtecde");
+        var tabAdvQte = document.querySelectorAll(".advqte");
+
+        for (var i = 0; i < tabQuantite.length; i++) {
+            var quantite = tabQuantite[i];
+            if (tabAdvQte[i].getAttribute('data-alt') !== 'X')
+                quantite.value = parseFloat(tabAdvQte[i].innerHTML);
+        }
+        updateSum(document.getElementById('frais').innerHTML);
+
+    }
+
+    function updateSum(amount) {
+        var fTotal = 0;
+        var fArt = 0;
+        var tabQuantite = document.querySelectorAll(".qtecde");
+        var tabPrix = document.querySelectorAll(".prix");
+        var tabPtot = document.querySelectorAll(".ptot");
+
+        for (var i = 0; i < tabQuantite.length; i++) {
+            var quantite = tabQuantite[i];
+
+            if (quantite.value === "" || parseFloat(quantite.value) < 0) quantite.value = 0;
+
+            fTotal += parseFloat(quantite.value) * parseFloat(tabPrix[i].innerHTML);
+            fArt += parseFloat(quantite.value);
+            tabPtot[i].innerHTML = (parseFloat(quantite.value) * parseFloat(tabPrix[i].innerHTML)).toFixed(2);
+
+        }
+        fTotal += parseFloat(amount);
+        document.getElementById("total").innerHTML = fTotal.toFixed(2);
+        document.getElementById("totalart").innerHTML = fArt + " article(s)";
+    }
+</script>

@@ -1,0 +1,140 @@
+<!-- Modal -->
+<div v-for="adherent in adherents_filtered" v-bind:key="'info_'+adherent.nom+adherent.prenom" class="modal fade" :id="'adherent_'+adherent.idx" tabindex="-1" role="dialog" :aria-labelledby="'adherentTitle_'+adherent.idx" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title":id="'adherentTitle_'+adherent.idx">{{ adherent.prenom + ' ' + adherent.nom }}</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3"><img :alt="adherent.prenom + ' ' + adherent.nom" :src="adherent.src" width="120px" height="150px" class="mx-1 img-thumbnail" /></div>
+                <div class="tab-content" id="infoAdherent">
+                    <ul class="nav nav-tabs" id="infoTabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" :id="'pers-tab'+adherent.idx" data-toggle="tab" :href="'#pers'+adherent.idx" role="tab" aria-controls="pers" aria-selected="true"><i class="far fa-address-card"></i> Info Perso</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" :id="'urgent-tab'+adherent.idx" data-toggle="tab" :href="'#urgent'+adherent.idx" role="tab" aria-controls="urgent" aria-selected="false"><i class="fas fa-ambulance"></i> Urgence</a>
+                        </li>
+                        <li class="nav-item" v-if="!adherent.isAdulte">
+                            <a class="nav-link" v-if="!adherent.isAdulte" :id="'parent-tab'+adherent.idx" data-toggle="tab" :href="'#parent'+adherent.idx" role="tab" aria-controls="parent" aria-selected="false"><i class="fas fa-user-friends"></i> Parents</a>
+                        </li>                       
+                        <li class="nav-item">
+                            <a class="nav-link" v-if="adherent.hasLicence" :id="'ffbad-tab'+adherent.idx" data-toggle="tab" :href="'#ffbad'+adherent.idx" role="tab" aria-controls="ffbad" aria-selected="false"><i class="fas fa-trophy"></i> FFBad</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" v-if="!adherent.isFull" :id="'data-tab'+adherent.idx" data-toggle="tab" :href="'#data'+adherent.idx" role="tab" aria-controls="data" aria-selected="false"><i class="fas fa-folder"></i> FVA</a>
+                        </li>
+                    </ul>
+                    <div class="tab-pane fade show active" :id="'pers'+adherent.idx" role="tabpanel" :aria-labelledby="'pers-tab'+adherent.idx">
+                        <div class="container">
+                            <div class="row mt-3row mt-3">
+                                <div class="col-auto"><i class="fas fa-birthday-cake"></i></div>
+                                <div class="col">{{ adherent.birth }} ({{ adherent.age }} ans)</div>
+                            </div>
+                            <div class="row mt-3row mt-3">
+                                <div class="col-auto" v-if="adherent.tel"><i v-if="adherent.tel" class="fas fa-phone"></i></div>
+                                <div class="col" v-if="adherent.tel"><a target="_blank" :href="'https://ctrlq.org/call/'+adherent.tel">{{ adherent.tel }}</a></div>
+                                <div class="col-auto" v-if="adherent.mob"><i v-if="adherent.mob" class="fas fa-mobile-alt"></i></div>
+                                <div class="col" v-if="adherent.mob"><a target="_blank" :href="'https://ctrlq.org/call/'+adherent.mob">{{ adherent.mob }}</a></div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-auto"><i class="fas fa-map-marked-alt"></i></div>
+                                <div class="col">{{ adherent.rue }}<br />{{ adherent.cp }} {{ adherent.city }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" :id="'urgent'+adherent.idx" role="tabpanel" :aria-labelledby="'urgent-tab'+adherent.idx">
+                        <div class="container">
+                            <div class="row mt-3row mt-3" v-if="adherent.urg1.nom">
+                                <div class="col">{{ adherent.urg1.nom }}</div>
+                                <div class="col-auto"><i class="fas fa-phone-alt"></i></div>
+                                <div class="col"><a target="_blank" :href="'https://ctrlq.org/call/'+adherent.urg1.tel">{{ adherent.urg1.tel }}</a></div>
+                            </div>
+                            <div class="row mt-3row mt-3" v-if="adherent.urg2.nom">
+                                <div class="col">{{ adherent.urg2.nom }}</div>
+                                <div class="col-auto"><i class="fas fa-phone-alt"></i></div>
+                                <div class="col"><a target="_blank" :href="'https://ctrlq.org/call/'+adherent.urg2.tel">{{ adherent.urg2.tel }}</a></div>
+                            </div>
+                           <div class="row mt-3row mt-3" v-if="adherent.urg3.nom">
+                                <div class="col">{{ adherent.urg3.nom }}</div>
+                                <div class="col-auto"><i class="fas fa-phone-alt"></i></div>
+                                <div class="col"><a target="_blank" :href="'https://ctrlq.org/call/'+adherent.urg3.tel">{{ adherent.urg3.tel }}</a></div>
+                            </div>
+                        </div> 
+                   </div>
+                    <div class="tab-pane fade" :id="'parent'+adherent.idx" role="tabpanel" :aria-labelledby="'parent-tab'+adherent.idx" v-if="!adherent.isAdulte">
+                        <div class="container">
+                            <div class="row mt-3row mt-3" v-if="!adherent.isAdulte">
+                                <div class="col-auto">Parent :</div>
+                                <div class="col">{{ adherent.parent1 }} </div>
+                            </div>
+                            <div class="row mt-3row mt-3" v-if="!adherent.isAdulte">
+                                <div class="col-auto">Parent :</div>
+                                <div class="col">{{ adherent.parent2 }} </div>
+                            </div>
+                        </div>                    
+                    </div>
+                    <div v-if="adherent.hasLicence" class="tab-pane fade" :id="'ffbad'+adherent.idx" role="tabpanel" :aria-labelledby="'ffbad-tab'+adherent.idx">
+                        <div class="container">
+                            <div class="row mt-3row mt-3" v-if="adherent.hasLicence">
+                                <div class="col-auto">Licence :</div>
+                                <div class="col">{{ adherent.licence }} <a v-if="adherent.licence" target="_blank" :href="'https://www.myffbad.fr/joueur/'+adherent.licence"><i class="fas fa-external-link-alt"></i></a></div>
+                            </div>
+                            <div><button :id="'badnet'+adherent.idx" type="button" class="btn btn-info" @click="getBadNet(adherent.licence, adherent.idx)">Classement</button></div>
+                            <div class="row mt-3row mt-3" v-if="adherent.hasLicence">                           
+                                <div class="col-auto">Simple :</div>
+                                <div class="col"><span :id="'single'+adherent.idx"></span></div>
+                            </div>
+                            <div class="row mt-3row mt-3" v-if="adherent.hasLicence">                           
+                                <div class="col-auto">Double :</div>
+                                <div class="col" :id="'double'+adherent.idx"></div>
+                            </div>
+                            <div class="row mt-3row mt-3" v-if="adherent.hasLicence">                           
+                                <div class="col-auto">Mixte :</div>
+                                <div class="col" :id="'mixte'+adherent.idx"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" :id="'data'+adherent.idx" role="tabpanel" v-if="!adherent.isFull" :aria-labelledby="'data-tab'+adherent.idx">
+                        <div class="container">
+                            <div class="row mt-3">
+                                <div class="col-auto">Cotisation :</div>
+                                <div class="col"><i :class="adherent.data.cotisation"></i></div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-auto">Fiche FVA :</div>
+                                <div class="col"><i :class="adherent.data.fva"></i></div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-auto">Fiche FFBad :</div>
+                                <div class="col"><i :class="adherent.data.ffbad"></i></div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-auto">Certificat :</div>
+                                <div class="col"><i :class="adherent.data.certif"></i></div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-auto">Diffussion :</div>
+                                <div class="col"><i :class="adherent.data.photo"></i> </div>
+                            </div>
+                            <div class="row mt-3" v-if="adherent.isReduc">
+                                <div class="col-auto" v-if="adherent.isReduc">Justificatif :</div>
+                                <div class="col" v-if="adherent.isReduc"><i :class="adherent.data.justif"></i></div>
+                            </div>
+                            <div class="row mt-3" v-if="!adherent.isAdulte">
+                                <div class="col-auto">Autorisation parentale :</div>
+                                <div class="col"><i :class="adherent.data.parent"></i></div>
+                            </div>
+                        </div>                    
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <span v-for="tag in adherent.tags" v-bind:key="tag" v-bind:tag="tag" class="badge badge-success">{{ tag }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,38 @@
+<hr class="my-4" />
+<div><small class="text-muted">Ces informations nous permettront de retrouver votre enfant (pour la livraison) ou de vous contacter !</small></div>
+<div class="form-group row">
+    <label for="ecole" class="control-label col-sm-2 current_classe">Classe actuelle</label>
+    <div class="col-sm-6">
+        <select name="current" id="current" class="form-control custom-select custom-select-sm" required>
+            <option value="" selected disabled>Sélectionner la classe</option>
+        </select>
+    </div>
+</div>
+<div class="form-group row">
+    <label class="control-label col-sm-2" for="inputNom">Nom et prénom de l'enfant</label>
+    <div class="col-sm-3">
+        <input type="text" class="form-control form-control-sm" id="inputNom" placeholder="Nom" value="<?!= getCacheKey("nom"); ?>" required>
+    </div>
+    <div class="col-sm-3">
+        <input type="text" class="form-control form-control-sm" id="inputPrenom" placeholder="Prénom" value="<?!= getCacheKey("prenom"); ?>" required>
+    </div>
+</div>
+<div class="form-group row">
+    <label class="control-label col-sm-2" for="inputMail">Adresse de messagerie</label>
+    <div class="col-sm-6">
+        <input type="email" class="form-control form-control-sm" id="inputMail" placeholder="Email" value="<?!= getCacheKey("mail"); ?>" required>
+    </div>
+</div>
+<div class="form-group row">
+    <label class="control-label col-sm-2" for="inputPhone">Numéro de téléphone</label>
+    <div class="col-sm-3">
+        <input type="tel" class="form-control form-control-sm" id="inputPhone" placeholder="0102030405" pattern="^(0[6795]){1}([0-9]{8})$" value="<?!= getCacheKey("tel"); ?>" required>
+    </div>
+</div>
+<div class="custom-control custom-checkbox">
+    <input type="checkbox" class="custom-control-input" id="customCheck1" required>
+    <label class="custom-control-label" for="customCheck1">En validant la commande vous vous engagez à régler le montant dû auprès de l'APE</label>
+</div>
+<div class="form-group spacer">
+    <input type="submit" value="Commander" class="btn btn-primary">
+</div>

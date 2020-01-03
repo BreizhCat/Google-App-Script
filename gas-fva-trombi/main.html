@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <base target="_top">
+    <meta charset="utf-8">
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.0"></script> 
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css" integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
+    <link href="https://stackpath.bootstrapcdn.com/bootswatch/4.3.1/sketchy/bootstrap.min.css" rel="stylesheet" integrity="sha384-N8DsABZCqc1XWbg/bAlIDk7AS/yNzT5fcKzg/TwfmTuUqZhGquVmpb5VvfmLcMzp" crossorigin="anonymous">
+    <?!= include('stylesheet') ?>
+</head>
+
+<body class="bg-primary">
+    <div id="container" class="container bg-primary">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+            <a class="navbar-brand prevdef" href="#" @click="set_filtering('', $event)">Trombinoscope</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item" v-for="groupe in groupes" v-bind:groupe="groupe" v-bind:key="groupe">
+                        <a class="nav-link prevdef" href="#" v-on:click="set_filtering(groupe, $event)">{{ groupe }}</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav p-2" id="conf">
+                    <li class="nav-item">
+                        <i class="fas fa-cog text-light" onClick="retrieveConf();"></i>
+                    </li>
+                </ul>
+                <form class="form-inline my-2 my-lg-0" id="searchForm">
+                    <input class="form-control mr-sm-2" type="search" placeholder="Recherche" id="searchInput">
+                </form>
+            </div>
+        </nav>
+        <!-- Login -->
+        <div class="card text-white bg-info mb-3 mt-3 text-center" style="width: 18rem; margin :auto" id="loginBlock">
+            <div class="card-body">
+                <h5 class="card-title">Identifiez-vous</h5>
+                <div class="form-group">
+                    <form id="loginForm" method="post">
+                        <div class="input-group mb-3">
+                            <input type="hidden" class="form-control" id="user" autocomplete="username" value="fva" />
+                            <input type="password" class="form-control" id="password" placeholder="Password" autocomplete="current-password" />
+                            <div class="input-group-append">
+                                <button class="btn btn-primary" type="submit">Go !</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div id="loginSuccess">Accès autorisé ! Chargement des données ...</div>        
+        <div id="loginFailed">Accès refusé !</div>
+        <div id="no_entry" class="alert alert-info">Aucun adhérent dans cette section</div>
+        <!-- Trombi -->
+        <div id="trombi" class="mt-3 text-center">
+            <div class="loader"><img src="https://www.gifmania.fr/Gif-Animes-Sport/Animations-Badminton/Badminton-82909.gif" alt="loading..." /></div>
+            <transition name="list" appear>
+                <div class="alert alert-info" v-if="nobody">Personne dans ce groupe !</div>
+            </transition>
+            <transition-group name="list" tag="div" appear>
+                <figure class="figure" v-for="adherent in adherents_filtered" v-bind:key="adherent.nom+adherent.prenom" @click="dispInfos(adherent.idx)" class="list-item" style="vertical-align: text-top">
+                    <img :src="adherent.src" :class="'mx-1 zoom img-thumbnail '+(adherent.private?'private':'normal')" width="120px" height="150px" />
+                    <figcaption v-if="adherent.isFull" class="figure-caption text-center" style="width:130px">{{ adherent.prenom + ' ' + adherent.nom }}</figcaption>
+                    <figcaption v-else class="figure-caption text-center incomplet" style="width:130px">{{ adherent.prenom + ' ' + adherent.nom }}</figcaption>
+                </figure>
+            </transition-group>
+        </div>
+        <?!= include('info') ?>
+    </div>
+    <?!= include('modal') ?>
+    <?!= include('javascript') ?>    
+</body>
+</html>

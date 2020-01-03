@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="fr">
+
+<head>
+    <?!= include('header') ?>
+    <base target="_top">
+    <title>Commandes groupées APE</title>
+    <?!= include('stylesheet'); ?>
+    <?!= dataSource.getTheme() ?>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg fixed-top navbar-dark bg-primary">
+        <img src="<?!= dataSource.getLogo() ?>" width="30" height="30" class="d-inline-block align-top" alt="">
+        <span class="navbar-text">&nbsp;&nbsp;&nbsp;Association des Parents d'Élèves Aussonne - Commande groupée de fournitures scolaires</span>
+        <div class="bar"></div>
+    </nav>
+      <? if(getCacheKey('isRefreshed') !== 'X') { ?>
+      
+      <?!= include('modal');  ?>
+      
+      <? } ?>
+   <div class="spacer"></div>
+    <div id="content" class="container">
+        <div class="card">
+            <h3 class="card-header text-center">Formulaire de commande APE</h3>
+            <div class="card-body">
+                <div id="dbg" class="alert alert-danger" style="display:none"></div>
+                <div id="proc" style="display:none">Votre commande est en cours de traitement. Veuillez patienter !</div>
+                <div id="order" class="alert alert-success" style="display:none"></div>
+                <form class="needs-validation" id="formulaire">
+                    <fieldset>
+                    <?!= include('fournitures') ?>
+                    </fieldset>
+                    <fieldset id="contact">
+                    <?!= include('contact') ?>
+                    </fieldset>
+                </form>
+            </div>
+        </div>
+    </div>
+    <?!= include('scripts'); ?>  
+</body>
+
+</html>

@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="fr">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+    <!-- Mise en forme -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css" integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
+    <link href="https://stackpath.bootstrapcdn.com/bootswatch/4.3.1/darkly/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-w+8Gqjk9Cuo6XH9HKHG5t5I1VR4YBNdPt/29vwgfZR485eoEJZ8rJRbm3TR32P6k" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css?family=Stylish" rel="stylesheet">
+    <style>
+        em {
+            font-family: 'Stylish', sans-serif;
+        }
+    </style>
+    <!-- Optional JavaScript -->
+
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"
+        integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
+    <script
+        src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?autoload=true&amp;skin=sunburst&amp;lang=css"
+        defer></script>
+    <script src="i18n.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <title>Génération d'événements</title>
+</head>
+
+<body>
+    <div id="content" class="container">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light" id="navbar">
+            <a class="navbar-brand" href="#"><img class="d-inline-block align-top"
+                    src="https://cdn4.iconfinder.com/data/icons/small-n-flat/24/calendar-512.png" width="30" height="30"
+                    alt="Logo">{{ page_textes.nav_title }}</a>
+            <div class="collapse navbar-collapse" id="navbarText">
+                <ul class="navbar-nav mr-auto">
+                    <item_menu v-for="item in menuItem" v-bind:item="item" v-bind:key="item.text"></item_menu>
+                </ul>
+            </div>
+        </nav>
+        <!-- Modal -->
+        <div class="modal fade" id="optionsModal" tabindex="-1" role="dialog" aria-labelledby="optionsModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="optionsModalLabel">{{ page_textes.opt_title}}</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary">{{ page_textes.opt_save}}</button>
+                        <button type="button" class="btn btn-secondary"
+                            data-dismiss="modal">{{ page_textes.opt_leave}}</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="formulaire" class="mt-2">
+            <form id="events">
+                <button type="button" class="btn btn-primary" v-on:click="addNewItem"><i
+                        class="far fa-calendar-plus"></i>&nbsp;{{ page_textes.but_add }}</button>
+                <button type="button" class="btn btn-primary"><i
+                        class="far fa-check-circle"></i>&nbsp;{{ page_textes.but_create }}</button>
+                <div id="event_list" class="mt-2">
+                    <item_event v-for="item in eventItem" v-bind:item="item" v-bind:key="item.id" @remove="removeItem" @duplicate="copyItem">
+                    </item_event>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script>
+
+        $(function () {
+
+            Vue.component('item_menu', {
+                props: ['item'],
+                template: '<li class="nav-item">' +
+                    '<a :onclick="item.action" class="nav-link" href="#" data-toggle="modal" data-target="#optionsModal">' +
+                    '<span :class="item.icon"></span>' +
+                    '&nbsp;{{ item.text }}</a></li>'
+            });
+
+            Vue.component('item_event', {
+                props: ['item'],
+                data: function () {
+                    return {
+                        event_collapse: false,
+
+                    }
+                },
+                template: `
+                    <fieldset>
+                        <legend>
+                            <div class="row">
+                                <div class="title col-md-5">{{ item.text }} / {{ item.id}} / {{ item.location}}</div>
+                                <div class="btn-group col-xs-12">
+                                    <button type="button" class="btn btn-info btn-sm" v-on:click="item.collapse = ! item.collapse">
+                                        <i v-if="item.collapse" class="far fa-plus-square"></i>
+                                        <i v-else class="far fa-minus-square"></i>
+                                    </button>
+                                    <button type="button" @click="$emit('duplicate', item.id)" class="btn btn-secondary btn-sm"><i class="far fa-copy"></i></button>
+                                    <button type="button" @click="$emit('remove', item.id)" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button>    
+                                </div>
+                            </div>
+                        </legend>
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text"><i class="far fa-file-alt"></i></span>
+                            </div>
+                            <input type="text" v-model="item.text" class="form-control" placeholder="Texte" />
+                        </div>
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text"><i class="fas fa-map-signs"></i></span>
+                            </div>
+                            <input type="text" v-model="item.text" class="form-control" placeholder="Texte" />
+                        </div>
+                        
+                    </fieldset>`
+            })
+
+
+            var oVueNav = new Vue({
+                el: '#content',
+                data: {
+                    page_textes: cTextes,
+                    menuItem: [
+                        { icon: 'fas fa-home', text: cTextes.menu_home, action: 'alert("home")' },
+                        { icon: 'fas fa-sync-alt', text: cTextes.menu_refresh, action: 'alert("raf")' },
+                        { icon: 'fas fa-tools', text: cTextes.menu_option, action: '' }
+                    ],
+                    calItem: [
+                        { id: 'cal1', text: 'Perso' },
+                        { id: 'cal2', text: 'Nous' },
+                        { id: 'cal3', text: 'Eux' }
+                    ],
+                    eventItem: [
+                        { id: 0, text: 'Event 1', location: 'Aussonne', collapse: true },
+                        { id: 1, text: 'Event 2', location: 'Cornebarrieu', collapse: false },
+                        { id: 2, text: 'Event 3', location: 'Toulouse', collapse:false },
+                    ],
+                    lastItemID: 3,
+                },
+                methods: {
+                    addNewItem: function () {
+                        let newEvent = { 'id': this.lastItemID++, 'text': 'Nouvel Event', location: 'tbd' }
+                        this.eventItem.push(newEvent);
+                    },
+
+                    removeItem: function (id) {
+                        this.eventItem = this.eventItem.filter(item => { return item.id !== id })
+                    },
+
+                    copyItem: function (id) {
+                        let copyFrom = this.eventItem.filter(item => { return item.id === id })[0];
+                        this.eventItem.push({'id':this.lastItemID++, 'text':copyFrom.text, 'location':copyFrom.location });
+                    }
+                }
+            })
+        })
+    </script>
+</body>
+
+</html>
